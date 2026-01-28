@@ -58,8 +58,8 @@ data/
 
 Use the Source Control tab in VS Code to create a new branch, below Repositories click where it says main, and then choose ***create new branch with YOUR NAME***.
 
-***Adding changes*** to your branch in github *(Make sure you are working in your branch by testing **git branch** in the terminal)*:
-
-    Use the “Source Control” tab in VS Code to add the *file* you worked on to the staged area (“Stage Changes” button in the “CHANGES” panel), and commit. Then click “Push” in the “GRAPH” panel for the commit to be pushed to your branch in GitHub.
-
+***Adding changes*** to your branch *(Make sure you are working in your branch by testing **git branch** in the terminal)*:
+```
+Use the “Source Control” tab in VS Code to add the *file* you worked on to the staged area (“Stage Changes” button in the “CHANGES” panel), and commit. Then click “Push” in the “GRAPH” panel for the commit to be pushed to your branch in GitHub.
+```
 If you do not want to add a file to your girthub branch add it to **.gitignore**
