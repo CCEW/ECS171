@@ -1,0 +1,8 @@
+# python junk
+__pycache__/
+.ipynb_checkpoints/
+# datasets
+data/raw/historical_data/
+data/raw/SP500_10Y/
+data/raw/2015-2025.zip
+data/raw/historical_data.zip
