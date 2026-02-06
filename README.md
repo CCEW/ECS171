@@ -41,15 +41,13 @@ The first run may take a few minutes while VS Code builds a new Docker container
 
 Download data
 -
-Download the datasets from Kaggle as zip file:
-1. https://www.kaggle.com/datasets/henryhan117/sp-500-historical-data?resource=download
-2. https://www.kaggle.com/datasets/innacampo/s-and-p-500-stocks-daily-historical-data-10-years
+Download the dataset from Kaggle as zip file:
+1. https://www.kaggle.com/datasets/innacampo/s-and-p-500-stocks-daily-historical-data-10-years
 
-Place the zips inside their respective folders (historical_data and SP500_10Y). Then, extract everything from the zip, you should have the following:
+Place the zip inside their respective folders (SP500_10Y). Then, extract everything from the zip, you should have the following:
 ```bash
 data/
     raw/
-        historical_data/ SPX.csv
         SP500_10Y/ several csv files
 ```
 
