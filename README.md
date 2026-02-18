@@ -51,6 +51,19 @@ data/
         SP500_10Y/ several csv files
 ```
 
+After running the notebooks
+-
+You should have the following:
+```bash
+data/
+    raw/
+        SP500_10Y/ several csv files
+    processed/
+        sp500_panel.csv
+    features/
+        sp500_panel_with_features.csv
+```
+
 ## Editing
 **IMPORTANT: DO NOT WORK IN MAIN BRANCH**
 
@@ -63,3 +76,4 @@ button in the “CHANGES” panel), and commit. Then click “Push” in the “
 pushed to your branch in GitHub.
 ```
 If you do not want to add a file to your girthub branch add it to **.gitignore**
+
