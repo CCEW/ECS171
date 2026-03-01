@@ -4,3 +4,8 @@ scikit-learn
 matplotlib
 seaborn
 jupyter
+tensorflow
+lightgbm
+pickle
+optuna
+
