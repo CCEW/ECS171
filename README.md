@@ -62,6 +62,8 @@ data/
         sp500_panel.csv
     features/
         sp500_panel_with_features.csv
+    model/
+        regime_pred.csv
 ```
 
 ## Editing
@@ -77,3 +79,7 @@ pushed to your branch in GitHub.
 ```
 If you do not want to add a file to your girthub branch add it to **.gitignore**
 
+
+**MORE**
+
+The data and some of the models are not in the github resulted from running the notebooks due to their size, you can get the data from the above link and the missing models from running the notebooks. However, those models are not required for the demo.
