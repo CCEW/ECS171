@@ -1,4 +1,0 @@
-Model A,Model B,chi2,p-value,Result
-Logistic Regression,Random Forest,19.161,1e-05,Significant
-Logistic Regression,LightGBM,19.387,1e-05,Significant
-Random Forest,LightGBM,0.225,0.63562,Not significant
