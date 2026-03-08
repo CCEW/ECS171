@@ -1,7 +1,0 @@
-Model A,Model B,chi2,p-value,Sig
-Logistic Regression,Random Forest,1.939,0.16373,n.s.
-Logistic Regression,LightGBM,1.021,0.31232,n.s.
-Logistic Regression,XGBoost,2.753,0.09709,n.s.
-Random Forest,LightGBM,0.0,1.0,n.s.
-Random Forest,XGBoost,0.57,0.45035,n.s.
-LightGBM,XGBoost,1.016,0.3135,n.s.
