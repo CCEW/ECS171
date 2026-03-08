@@ -163,7 +163,7 @@ def get_price_performance(ticker, end_date, days=90):
     Returns: (current_price, percent_change)
     """
     try:
-        hist = get_stock_data_cached(ticker, max_days=365)  # Get up to 1 year
+        hist = get_stock_data_cached(ticker, max_days=3650)
         if hist is None or hist.empty or len(hist) < 2:
             return None, None
         
@@ -194,7 +194,7 @@ def get_normalized_stock_data(tickers, end_date, days=180):
     
     for ticker in tickers:
         try:
-            hist = get_stock_data_cached(ticker, max_days=365)  # Get up to 1 year
+            hist = get_stock_data_cached(ticker, max_days=3650)
             
             if hist is None or hist.empty or len(hist) < 2:
                 continue
@@ -257,7 +257,7 @@ def plot_stock_chart(ticker, end_date, days=180):
     the buy/sell/hold signal.
     """
     try:
-        hist = get_stock_data_cached(ticker, max_days=365)  # Get up to 1 year
+        hist = get_stock_data_cached(ticker, max_days=3650)
         
         if hist is None or hist.empty:
             st.warning(f"No data available for {ticker}")
@@ -340,37 +340,50 @@ def plot_stock_chart(ticker, end_date, days=180):
 def get_best_worst_from_tickers(tickers_list, date_str):
     """
     Get best and worst performers from a specific list of tickers.
-    Cached for 1 hour. Shows how selected stocks compare to each other on the prediction date.
+    Cached for 1 hour. Uses get_features_cached to avoid redundant yfinance downloads.
     """
     results = []
-    
+    target_date = pd.to_datetime(date_str)
+    _all_feats = list(dict.fromkeys(S1_FEATURES + S2_FEATURES_BASE))
+
     for ticker in tickers_list:
         try:
-            info = predictor.get_info(ticker, date_str)
-            if info['error'] is None:
-                regime_code, result = predictor.run_prediction(info)
-                if result.get('error') is None:
-                    end_date = pd.to_datetime(date_str)
-                    _, pct_change = get_price_performance(ticker, end_date, days=90)
-                    
-                    if pct_change is not None:
-                        results.append({
-                            'ticker': ticker,
-                            'signal': result['signal'],
-                            'buy_pct': result['buy_pct'],
-                            'performance': pct_change,
-                            'confidence': result['confidence']
-                        })
+            feat_df = get_features_cached(ticker, target_date)
+            if feat_df is None:
+                continue
+            target_row = feat_df[feat_df.index.date == target_date.date()]
+            if target_row.empty:
+                continue
+            row = target_row.iloc[0]
+            if row[_all_feats].isna().any():
+                continue
+
+            s1_vals      = row[S1_FEATURES].values.flatten()
+            s2_base_vals = row[S2_FEATURES_BASE].values.flatten()
+
+            info = {'ticker': ticker, 's1_vals': s1_vals,
+                    's2_base_vals': s2_base_vals, 'error': None}
+            regime_code, result = predictor.run_prediction(info)
+
+            if result.get('error') is None:
+                _, pct_change = get_price_performance(ticker, target_date, days=90)
+                if pct_change is not None:
+                    results.append({
+                        'ticker':     ticker,
+                        'signal':     result['signal'],
+                        'buy_pct':    result['buy_pct'],
+                        'performance': pct_change,
+                        'confidence': result['confidence']
+                    })
         except:
             pass
-    
+
     if not results:
         return None, None
-    
-    df = pd.DataFrame(results)
-    best = df.nlargest(3, 'buy_pct')  # Based on buy probability
-    worst = df.nsmallest(3, 'buy_pct')  # Lowest buy probability
-    
+
+    df    = pd.DataFrame(results)
+    best  = df.nlargest(3, 'buy_pct')
+    worst = df.nsmallest(3, 'buy_pct')
     return best, worst
 
 @st.cache_data(ttl=3600)
@@ -406,78 +419,59 @@ def get_features_cached(ticker, end_date):
 def predict_future_signals(ticker, end_date, days_ahead=300):
     """
     Get historical model predictions for trend analysis.
-    Cached for 1 hour to improve performance.
-    
-    Uses the two-stage model:
-    - Stage 1 (rf_s1): Detects market regime (BULLISH|BEARISH|HIGH-VOLATILITY)
-    - Stage 2 (xgb_s2): Predicts signal (BUY|HOLD|SELL) with regime interactions
+    Cached for 1 hour. Fully vectorized — all rows processed in one batch
+    per model call instead of a per-row loop.
     """
     try:
         feat_df = get_features_cached(ticker, end_date)
         if feat_df is None:
             return None
-        
-        # Get historical predictions
-        past_predictions = []
-        past_dates = []
-        
-        # Sample from historical data to avoid processing ALL 365 days
+
         sample_step = max(1, len(feat_df) // (days_ahead // 3))
-        for idx in range(0, len(feat_df), sample_step):
-            row = feat_df.iloc[idx]
-            
-            # Check if S1_FEATURES are available
-            if pd.isna(row[S1_FEATURES]).any():
-                continue
-            
-            # Check if S2_FEATURES_BASE are available
-            if pd.isna(row[S2_FEATURES_BASE]).any():
-                continue
-            
-            s1_vals = row[S1_FEATURES].values.flatten()
-            s2_base_vals = row[S2_FEATURES_BASE].values.flatten()
-            
-            # Stage 1: Detect regime
-            try:
-                X_s1 = predictor.scaler_s1.transform(s1_vals.reshape(1, -1))
-                regime_code = int(predictor.rf_s1.predict(X_s1)[0])
-            except:
-                regime_code = 0
-            
-            # Stage 2: Compute interactions and predict signal
-            regime_direction = {0: 1.0, 1: -1.0, 2: 0.0}[regime_code]
-            regime_vol_flag = 1.0 if regime_code == 2 else 0.0
-            
-            ret_5d = float(s2_base_vals[S2_FEATURES_BASE.index('Ret_5d')])
-            rsi = float(s2_base_vals[S2_FEATURES_BASE.index('RSI')])
-            atr_pct = float(s2_base_vals[S2_FEATURES_BASE.index('ATR_Pct')])
-            
-            interactions = np.array([
-                float(regime_code),
-                regime_direction * ret_5d,
-                regime_direction * (rsi / 100.0),
-                regime_vol_flag * atr_pct,
-            ], dtype=np.float32)
-            
-            X_s2_regime = np.concatenate([s2_base_vals, interactions]).reshape(1, -1)
-            X_s2_regime_sc = predictor.scaler_s2.transform(X_s2_regime)
-            proba = predictor.xgb_s2.predict_proba(X_s2_regime_sc)[0]
-            
-            buy_pct = proba[2] * 100  # Class 2 is BUY
-            
-            past_predictions.append(buy_pct)
-            past_dates.append(feat_df.index[idx])
-        
-        if past_predictions:
-            return {
-                'past_dates': past_dates,
-                'past_predictions': past_predictions,
-                'prediction_date': end_date
-            }
-        
-        return None
-    
-    except Exception as e:
+        sampled = feat_df.iloc[::sample_step]
+
+        _all_feats = list(dict.fromkeys(S1_FEATURES + S2_FEATURES_BASE))
+        sampled = sampled.dropna(subset=_all_feats)
+        if sampled.empty:
+            return None
+
+        s1_batch = sampled[S1_FEATURES].values        # (N, 6)
+        s2_batch = sampled[S2_FEATURES_BASE].values   # (N, 9)
+
+        # Stage 1: one transform + one predict for all rows
+        X_s1_sc      = predictor.scaler_s1.transform(s1_batch)
+        regime_codes = predictor.rf_s1.predict(X_s1_sc).astype(int)  # (N,)
+
+        # Interaction features — vectorized
+        direction_map    = np.array([1.0, -1.0, 0.0])
+        regime_dirs      = direction_map[regime_codes]
+        regime_vol_flags = (regime_codes == 2).astype(float)
+
+        ret5_idx = S2_FEATURES_BASE.index('Ret_5d')
+        rsi_idx  = S2_FEATURES_BASE.index('RSI')
+        atr_idx  = S2_FEATURES_BASE.index('ATR_Pct')
+
+        interactions = np.column_stack([
+            regime_codes.astype(float),
+            regime_dirs  * s2_batch[:, ret5_idx],
+            regime_dirs  * (s2_batch[:, rsi_idx] / 100.0),
+            regime_vol_flags * s2_batch[:, atr_idx],
+        ])  # (N, 4)
+
+        # Stage 2: one transform + one predict_proba for all rows
+        X_s2_sc = predictor.scaler_s2.transform(
+            np.concatenate([s2_batch, interactions], axis=1)
+        )
+        probas   = predictor.xgb_s2.predict_proba(X_s2_sc)  # (N, 3)
+        buy_pcts = probas[:, 2] * 100
+
+        return {
+            'past_dates':       list(sampled.index),
+            'past_predictions': list(buy_pcts),
+            'prediction_date':  end_date,
+        }
+
+    except Exception:
         return None
 
 def plot_predicted_trend_chart(tickers, end_date, days=180):
@@ -760,6 +754,3 @@ if predict_button or (st.session_state.last_ticker == ticker and st.session_stat
             
             else:
                 st.warning("Could not generate trend analysis.")
-            
-            
-            
