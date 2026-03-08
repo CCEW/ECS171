@@ -9,8 +9,8 @@ print(result)
 
 '''
 Output:
-2 # HIGH-VOLATILITY
-{'ticker': 'AMZN', 'signal': 'BUY', 'sell_pct': np.float64(33.1), 'hold_pct': np.float64(25.6), 'buy_pct': np.float64(41.3), 'confidence': 'High', 'conf_emoji': '🔵', 'signal_no_reg': 'SELL', 'delta_buy': np.float64(7.42), 'error': None}
+2 # High Volatility
+{'ticker': 'AMZN', 'signal': 'BUY', 'regime': 'HIGH-VOLATILITY', 'sell_pct': np.float32(18.8), 'hold_pct': np.float32(20.9), 'buy_pct': np.float32(60.3), 'confidence': 'High', 'conf_emoji': '🔵', 'signal_no_reg': 'BUY', 'delta_buy': np.float32(23.56), 'error': None}
 
 
 Understanding Output:
