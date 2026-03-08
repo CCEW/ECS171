@@ -1,93 +1,49 @@
 # Stock Predictor Dashboard
 
-A professional Streamlit dashboard for AI-powered stock price prediction using S&P 500 stocks, featuring multi-stock comparison, normalized trend analysis, and dynamic theme configuration.
+A professional Streamlit dashboard for AI-powered stock price prediction using S&P 500 stocks, featuring multi-stock comparison and normalized trend analysis.
 
-## 🎯 Features
+## Features
 
-### **Single Stock Prediction**
+### Single Stock Prediction
 - **Buy/Sell/Hold Signals** - AI-powered recommendations for any S&P 500 stock on a given date
 - **Probability Metrics** - Buy %, Hold %, and Sell % confidence levels
 - **Market Regime Detection** - Bullish, Bearish, or High-Volatility classification
 - **Visual Signal Indicators** - Color-coded predictions (Green=Buy, Red=Sell, Yellow=Hold)
 
-### **Multi-Stock Comparison**
+### Multi-Stock Comparison
 - **Normalized Stock Comparison Chart** - Compare up to 6 stocks on the same chart
   - This visualization helps investors identify correlated movements, spot sector trends, and make portfolio rebalancing decisions
 - **Dynamic Time Horizon Selector** - Choose from 1 Month to 20 Years
 - **Best & Worst Performers** - Market context showing which stocks outperform others
 
-### **Professional Dashboard Layout**
-- **Bordered Container Grid** - Clean 2-column layout with organized sections
-- **Custom Theme Configuration** - Managed via `.streamlit/config.toml`
-- **Dark Professional Theme** - Finance-focused color scheme
-
-## Theme Configuration
-
-All styling is managed in `.streamlit/config.toml` with the following parameters:
-
-```toml
-[theme]
-base = "dark"
-
-# Colors
-textColor = "#e2e8f0"
-primaryColor = "#615fff"
-backgroundColor = "#1d293d"
-secondaryBackgroundColor = "#0f172b"
-
-# Widgets
-showWidgetBorder = true
-borderColor = "#314158"
-
-# Typography
-font = "'Space Grotesk':https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
-baseFontSize = 14
-headingFontSizes = ["2.5rem", "1.5rem", "1rem"]
-```
-
-**Key Theme Features:**
-- `showWidgetBorder = true` - Enables visual separation of dashboard sections
-- `primaryColor = "#615fff"` - Purple accent for buttons and interactive elements
-- `backgroundColor` - Dark navy background for reduced eye strain
-- Custom **Space Grotesk** font for modern typography
+### Professional Dashboard Layout
+- **Responsive Grid Layout** - Left panel for prediction controls, right panel for multi-stock comparison
+- **Organized Containers** - Bordered sections for easy visual separation
 
 ## Dashboard Layout
 
-The dashboard uses a **2-column responsive grid**:
+The dashboard uses a **[1, 2] column responsive grid** with the following structure:
 
-```
-┌─────────────────────────────────────────────┐
-│         📊 Stock Prediction Dashboard        │
-└─────────────────────────────────────────────┘
+**Left Column (1 unit):**
+- Prediction Settings container (ticker, date, predict button)
+- Selected Stocks Comparison (best & worst signals)
 
-┌─────────────────────┬─────────────────────┐
-│  Prediction         │  Stock Comparison   │
-│  Settings           │  & Time Horizon     │
-│  (ticker, date,     │  (multi-select,     │
-│   predict button)   │   radio buttons)    │
-└─────────────────────┴─────────────────────┘
+**Right Column (2 units):**
+- Multi-Stock Analysis container (ticker selection, time horizon)
+- Normalized Stock Trend Comparison chart
 
-┌─────────────────────┬─────────────────────┐
-│                     │  Normalized Stock   │
-│                     │  Trend Comparison   │
-│                     │  (Altair chart)     │
-└─────────────────────┴─────────────────────┘
+**Below Main Grid (Full Width):**
+- Prediction Results section (after "Predict" button clicked):
+  - Signal Display (BUY/SELL/HOLD with confidence)
+  - Signal Probabilities (Buy %, Hold %, Sell %, Market Regime)
+  - Stock Trend Analysis (model buy probability over time)
+  - Historical Price Chart (with Bollinger Bands)
 
-┌─────────────────────────────────────────────┐
-│  Prediction Results                         │
-│  • Signal (BUY/SELL/HOLD)                  │
-│  • Probability Distribution                 │
-│  • Market Regime                           │
-│  • Price Trend Chart (dynamic time horizon)│
-│  • Best/Worst Performers                   │
-└─────────────────────────────────────────────┘
-```
-
-## 🚀 Installation & Usage
+## Installation & Usage
 
 ### Prerequisites
 ```bash
-Python 3.8+
+Python 3.11
 pip
 ```
 
@@ -104,7 +60,7 @@ streamlit run demo.py
 
 The app will open at `http://localhost:8501`
 
-## 📊 How to Use
+## How to Use
 
 ### Step 1: Single Stock Prediction (Left Panel)
 1. Select a stock ticker from the dropdown (e.g., AAPL, MSFT)
@@ -122,7 +78,7 @@ The app will open at `http://localhost:8501`
 - **Yellow (HOLD)**: Model predicts sideways movement
 - **Confidence Levels**: 🔵 High | 🟡 Medium | 🔴 Low
 
-## 🧠 Model Architecture
+## Model Architecture
 
 ### Two-Stage Prediction System
 
@@ -143,7 +99,7 @@ Trend Indicators:     Price vs SMA50, Momentum deviation
 Market Structure:     Regime classification
 ```
 
-## 📈 Why See the Graphs?
+## Why See the Graphs?
 
 ### Single Stock Chart
 The price trend visualization provides visual context by showing:
@@ -159,19 +115,16 @@ Normalized stock comparison helps you:
 - **Assess relative performance** - Which stocks outperform peers
 - **Make rebalancing decisions** - Data-driven portfolio adjustments
 
-## ⚙️ Configuration Files
+## Configuration Files
 
-### `.streamlit/config.toml`
-Controls all visual styling (colors, fonts, widget borders)
-
-### `requirements.txt`
-Lists all Python dependencies:
+ `requirements.txt`
+lists all Python dependencies:
 - `streamlit` - Web framework
 - `yfinance` - Stock data API
 - `plotly` - Interactive charts
 - `altair` - Declarative visualization
-- `pandas`, `numpy` - Data processing
-- `lightgbm` - ML prediction models
+- `pandas`, `numpy`, `scikit-learn` - Data processing
+- `xgboost`, `randomforest` - ML prediction models
 
 ## Troubleshooting
 
@@ -202,8 +155,7 @@ Lists all Python dependencies:
 
 ### Adding New Features
 1. Update helper functions in `demo.py`
-2. Add styling rules to `.streamlit/config.toml` if needed
-3. Test with `streamlit run demo.py`
+2. Test with `streamlit run demo.py`
 
 ### Performance Optimization
 - First load: ~2-3 seconds (model cached)
@@ -214,22 +166,20 @@ Lists all Python dependencies:
 
 ```
 demo/
-├── demo.py                    # Main Streamlit application
-├── predictor.py              # Core ML prediction engine
-├── predictor_run.py          # Example usage
-├── models/                   # Pre-trained model files
-│   ├── lgb_s1.pkl           # Regime classifier
-│   ├── lgb_s2.pkl           # Signal predictor
-│   ├── scaler_s1.pkl        # Feature scaler (stage 1)
-│   └── scaler_s2.pkl        # Feature scaler (stage 2)
-└── README.md                 # This file
-
-.streamlit/
-└── config.toml               # Theme & styling configuration
+├── demo.py                     # Main Streamlit application
+├── predictor.py                # Core ML prediction engine
+├── confidence_distribution.py  # Example of confidence distribution
+├── predictor_run.py            # Example usage
+├── models/                     # Pre-trained model files
+│   ├── rf_s1.pkl               # Regime (stage 1)
+│   ├── xgb_s2.pkl              # Signal (stage 2)
+│   ├── scaler_s1.pkl           # Feature scaler (stage 1)
+│   └── scaler_s2.pkl           # Feature scaler (stage 2)
+└── README.md                   # This file
 ```
 
 ---
 
 **Last Updated**: March 2026  
-**Version**: 2.0 (Multi-stock comparison & theme config)
+**Version**: 3.0 (Multi-stock comparison, analysis, and updates)
 
