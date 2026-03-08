@@ -610,7 +610,7 @@ with cols[0]:
             perf_container = st.container(border=True)
             
             with perf_container:
-                st.markdown("##### Selected Stocks Comparison")
+                st.markdown("##### Selected Stocks Comparison (BUY%)")
                 pcol1, pcol2 = st.columns(2)
                 
                 with pcol1:
