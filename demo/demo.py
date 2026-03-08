@@ -7,6 +7,7 @@ import altair as alt
 from datetime import datetime, timedelta
 from predictor import StockPredictor,  S1_FEATURES, S2_FEATURES_BASE
 import warnings
+import os
 warnings.filterwarnings('ignore')
 
 # PAGE CONFIGURATION
@@ -22,7 +23,8 @@ st.set_page_config(
 
 @st.cache_resource
 def load_predictor():
-    return StockPredictor('models')
+    model_dir = os.path.join(os.path.dirname(__file__), 'models')
+    return StockPredictor(model_dir)
 
 predictor = load_predictor()
 DEFAULT_STOCKS = ["AAPL", "MSFT", "GOOGL", "NVDA", "AMZN", "TSLA"]
