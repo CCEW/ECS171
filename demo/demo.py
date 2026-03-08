@@ -418,9 +418,10 @@ def get_features_cached(ticker, end_date):
     return feat_df
 
 @st.cache_data(ttl=3600)
-def predict_future_signals(ticker, end_date, days_ahead=300):
+def predict_past_buy_probability(ticker, end_date, days_ahead=300):
     """
-    Get historical model predictions for trend analysis.
+    Get historical model buy probability predictions for trend analysis.
+    Limits results to the specified days_ahead timeframe.
     Cached for 1 hour. Fully vectorized — all rows processed in one batch
     per model call instead of a per-row loop.
     """
@@ -429,7 +430,15 @@ def predict_future_signals(ticker, end_date, days_ahead=300):
         if feat_df is None:
             return None
 
-        sample_step = max(1, len(feat_df) // (days_ahead // 3))
+        # Filter to only the requested time period
+        cutoff_date = pd.Timestamp(end_date - timedelta(days=days_ahead))
+        feat_df = feat_df[feat_df.index >= cutoff_date]
+        
+        if feat_df.empty or len(feat_df) < 2:
+            return None
+
+        # Sample to reduce data points if needed (roughly 100 points max for chart)
+        sample_step = max(1, len(feat_df) // 100)
         sampled = feat_df.iloc[::sample_step]
 
         _all_feats = list(dict.fromkeys(S1_FEATURES + S2_FEATURES_BASE))
@@ -487,7 +496,7 @@ def plot_predicted_trend_chart(tickers, end_date, days=180):
     all_data = []
     
     for ticker in tickers:
-        pred_data = predict_future_signals(ticker, end_date, days_ahead=days)
+        pred_data = predict_past_buy_probability(ticker, end_date, days_ahead=days)
         if pred_data:
             # Add historical predictions only
             for date, pred in zip(pred_data['past_dates'], pred_data['past_predictions']):
@@ -591,9 +600,11 @@ with cols[1]:
         trend_container = st.container(border=True)
         
         with trend_container:
+            
             days = HORIZON_MAP.get(horizon, 180)
             chart = plot_predicted_trend_chart(comparison_tickers, datetime.now().date(), days=days)
             if chart:
+                st.markdown("#### Predicted Trend Comparison", text_alignment="center")
                 st.altair_chart(chart, width='stretch')
             else:
                 st.info("No prediction data available for selected stocks.")
@@ -667,7 +678,7 @@ if predict_button or (st.session_state.last_ticker == ticker and st.session_stat
                 """, unsafe_allow_html=True)
             
             # Probability Grid [1, 3]
-            st.markdown("##### Signal Probabilities")
+            st.markdown("#### Signal Probabilities")
             prob_cols = st.columns([1,1,1,1.5], gap="small")
             
             with prob_cols[0]:
@@ -686,22 +697,24 @@ if predict_button or (st.session_state.last_ticker == ticker and st.session_stat
                     st.metric("**Sell**", f"{result['sell_pct']:.1f}%")
             
             # Market Regime
-            regime_map = {0: 'BULLISH 🟢', 1: 'BEARISH 🔴', 2: 'HIGH-VOLATILITY ⚡'}
+            regime_map = {0: 'BULLISH', 1: 'BEARISH', 2: 'HIGH-VOLATILITY'}
             regime_name = regime_map.get(regime_code, 'UNKNOWN')
             
             with prob_cols[3]:
                 regime_container = st.container(border=True)
                 with regime_container:
-                    st.markdown(f"<div style='font-size: 16px; font-weight: bold;'>{'Market Regime'}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div style='font-size: 18px;'>{regime_name}</div>", unsafe_allow_html=True)
-                    st.caption(f"Base signal: {result['signal_no_reg']} | Regime impact: {result.get('delta_buy', 'N/A'):.1f}%")
-                
+                    delta_buy = result.get('delta_buy', 'N/A')
+                    delta_str = f"{delta_buy:.1f}%" if delta_buy != 'N/A' else 'N/A'
+                    tip = f"Base signal: {result['signal_no_reg']} | Regime impact: {delta_str}"
+                    
+                    st.metric("**Market Regime**", regime_name, help=tip)
+            
                 
             # Historical & Predicted Price Chart
             
             days_for_chart = HORIZON_MAP.get(st.session_state.selected_horizon, 180)
             
-            pred_trend_data = predict_future_signals(ticker, prediction_date, days_ahead=days_for_chart)
+            pred_trend_data = predict_past_buy_probability(ticker, prediction_date, days_ahead=days_for_chart)
             
             if pred_trend_data:
                 hist_container = st.container(border=True)
