@@ -721,7 +721,14 @@ if predict_button or (st.session_state.last_ticker == ticker and st.session_stat
                 
                 with hist_container:
                     st.markdown("#### Stock Trend Analysis")
+                    # Historical Price Chart
+                    price_chart = plot_stock_chart(ticker, prediction_date, days=days_for_chart)
                     
+                    if price_chart:
+                        price_chart.add_vline(x=prediction_date, line_dash="solid", line_color="red", opacity=0.7)
+                        st.plotly_chart(price_chart, width='stretch')
+                    else:
+                        st.warning(f"Could not retrieve price data for {ticker}.")
                     chart_df = pd.DataFrame({
                         'Date': pred_trend_data['past_dates'],
                         'BUY Probability': pred_trend_data['past_predictions']
@@ -758,14 +765,7 @@ if predict_button or (st.session_state.last_ticker == ticker and st.session_stat
                     
                     st.plotly_chart(fig, width='stretch')
                     
-                    # Historical Price Chart
-                    price_chart = plot_stock_chart(ticker, prediction_date, days=days_for_chart)
                     
-                    if price_chart:
-                        price_chart.add_vline(x=prediction_date, line_dash="solid", line_color="red", opacity=0.7)
-                        st.plotly_chart(price_chart, width='stretch')
-                    else:
-                        st.warning(f"Could not retrieve price data for {ticker}.")
             
             else:
                 st.warning("Could not generate trend analysis.")
