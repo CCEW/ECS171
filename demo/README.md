@@ -1,11 +1,11 @@
 # Stock Predictor Dashboard
 
-A professional Streamlit dashboard for AI-powered stock price prediction using S&P 500 stocks, featuring multi-stock comparison and normalized trend analysis.
+A professional Streamlit dashboard for market regime-aware stock classification framework using S&P 500 stocks, featuring multi-stock comparison and normalized trend analysis.
 
 ## Features
 
 ### Single Stock Prediction
-- **Buy/Sell/Hold Signals** - AI-powered recommendations for any S&P 500 stock on a given date
+- **Buy/Sell/Hold Signals** - recommendations for any S&P 500 stock on a given date
 - **Probability Metrics** - Buy %, Hold %, and Sell % confidence levels
 - **Market Regime Detection** - Bullish, Bearish, or High-Volatility classification
 - **Visual Signal Indicators** - Color-coded predictions (Green=Buy, Red=Sell, Yellow=Hold)
@@ -149,7 +149,7 @@ lists all Python dependencies:
 
 ## Disclaimer
 
-**Educational Use Only**: This AI model is for informational purposes. Stock predictions are NOT guarantees of future performance. Always consult a financial advisor before making investment decisions. Past performance does not indicate future results.
+**Educational Use Only**: Stock predictions are NOT guarantees of future performance. Always consult a financial advisor before making investment decisions. Past performance does not indicate future results.
 
 ## Development Notes
 
